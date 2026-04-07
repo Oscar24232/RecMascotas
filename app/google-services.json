@@ -12,7 +12,20 @@
           "package_name": "com.example.trabajoredsocial"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "626224850720-87kr56dn4snltrsg2v3ouhmjas2lsstp.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.trabajoredsocial",
+            "certificate_hash": "a977be83c4310e83039564ebbca21821c36cb90b"
+          }
+        },
+        {
+          "client_id": "626224850720-4o5qeo84s1oc32nk8npemfoliiep1mg7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyB6X3dqFWnbb0No0qFFeDHLfFiT0l8pkqI"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "626224850720-4o5qeo84s1oc32nk8npemfoliiep1mg7.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
