@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "626224850720",
+    "project_id": "redsocialmascotas-4b0ed",
+    "storage_bucket": "redsocialmascotas-4b0ed.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:626224850720:android:6d0aaaf7dc088a90f99945",
+        "android_client_info": {
+          "package_name": "com.example.trabajoredsocial"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB6X3dqFWnbb0No0qFFeDHLfFiT0l8pkqI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
