@@ -32,43 +32,5 @@ fun PantallaHome(navController: NavHostController) {
             Text("Pantalla Home 🐶🔥")
         }
 }
-@Composable
-fun RVUsuariosFilas() {
-    val context = LocalContext.current
 
-    LazyRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-        items(/*generarUsuarios()*/) {
-            ItemUsuario(u = it) { // Llamada a la función donde es clickable el card en ItemUsuario
-                Toast.makeText(
-                    context,
-                    "Usuario seleccionado: $it",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-        }
-    }
-}
 
-@Composable
-fun ItemUsuario(u: Usuario, onClick: (Usuario) -> Unit) {
-
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .padding(8.dp)
-            .clickable { onClick(u) }
-    ) {
-
-        Image(
-            painter = painterResource(id = u.imagen),
-            contentDescription = "Foto usuario",
-            modifier = Modifier
-                .size(80.dp)
-                .clip(CircleShape)
-        )
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        Text(text = u.nombre)
-    }
-}

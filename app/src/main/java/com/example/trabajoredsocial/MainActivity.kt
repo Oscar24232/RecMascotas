@@ -2,11 +2,14 @@
 
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,6 +17,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -26,6 +30,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,15 +48,27 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.loginfirebase_25_26.LoginViewModel
 import com.example.trabajoredsocial.ui.theme.TrabajoRedSocialTheme
-
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
 
 
  class MainActivity : ComponentActivity() {
-
+     private val viewModel = LoginViewModel()
+     private lateinit var googleSignInClient: GoogleSignInClient
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        //configuracion de googleSign
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken(getString(R.string.default_web_client_id))
+            .requestEmail()
+            .build()
+
+        googleSignInClient = GoogleSignIn.getClient(this, gso)
         setContent {
             TrabajoRedSocialTheme {
                val navController= rememberNavController()
@@ -60,7 +77,7 @@ import com.example.trabajoredsocial.ui.theme.TrabajoRedSocialTheme
                     startDestination = Rutas.pantallaLogin
                 ) {
                     composable(Rutas.pantallaLogin){
-                        MiPantalla(navController)
+                        MiPantalla(navController,googleSignInClient,viewModel)
                     }
                     composable(Rutas.pantallaUsuario) {
                         PantallaHome(navController)
@@ -75,10 +92,41 @@ import com.example.trabajoredsocial.ui.theme.TrabajoRedSocialTheme
  @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
  @OptIn(ExperimentalMaterial3Api::class)
  @Composable
- fun MiPantalla(navController: NavHostController) {
+ fun MiPantalla(
+     navController: NavHostController,
+     googleSignInClient: GoogleSignInClient,
+     viewModel: LoginViewModel
+ ) {
+     val isLoading by viewModel.isLoading.collectAsState()
+     val loginSuccess by viewModel.loginSuccess.collectAsState()
+     val errorMessage by viewModel.errorMessage.collectAsState()
+
      val context = LocalContext.current
      var usuario by remember { mutableStateOf("") }
      var password by remember { mutableStateOf("") }
+     var isRegistering by remember { mutableStateOf(false) }
+
+     val googleLauncher = rememberLauncherForActivityResult(
+         contract = ActivityResultContracts.StartActivityForResult()
+     ) { result ->
+         if (result.resultCode == Activity.RESULT_OK) {
+             val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+             try {
+                 val account = task.getResult(ApiException::class.java)
+                 val idToken = account?.idToken
+                 if (!idToken.isNullOrEmpty()) {
+                     viewModel.loginWithGoogle(idToken)
+                 } else {
+                     Toast.makeText(context, "No se obtuvo ID token", Toast.LENGTH_SHORT).show()
+                 }
+             } catch (e: ApiException) {
+                 Toast.makeText(context, "Error Google Sign-In: ${e.statusCode}", Toast.LENGTH_SHORT).show()
+             }
+         } else {
+             Toast.makeText(context, "Login cancelado", Toast.LENGTH_SHORT).show()
+         }
+     }
+
      Scaffold(
          topBar = {
              TopAppBar(
@@ -161,6 +209,18 @@ import com.example.trabajoredsocial.ui.theme.TrabajoRedSocialTheme
 
                      Button(onClick = { }) {
                          Text("REGISTRARSE")
+                     }
+                 }
+                 Row {
+                     Spacer(modifier = Modifier.height(16.dp))
+
+                     Button(
+                         onClick = {
+                             googleLauncher.launch(googleSignInClient.signInIntent)
+                         },
+                         modifier = Modifier.fillMaxWidth()
+                     ) {
+                         Text("Iniciar sesión con Google")
                      }
                  }
              }
