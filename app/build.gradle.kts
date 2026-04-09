@@ -63,7 +63,16 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     implementation("com.google.android.gms:play-services-auth:21.2.0")
-    implementation(platform("com.google.firebase:firebase-bom:34.11.0"))
     implementation("com.google.firebase:firebase-analytics")
+    // Firebase BOM
+    implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
+
+    // Authentication
+    implementation("com.google.firebase:firebase-auth")
+
+    // Firestore
+    implementation("com.google.firebase:firebase-firestore")
+
+
 
 }

@@ -4,4 +4,5 @@ object Rutas {
     val pantallaLogin="Pantalla Login"
     val pantallaUsuario="Pantalla Usuario"
     val pantallaAdmin="Pantalla Administrador"
+    val pantallaRegistro="Pantalla Registro"
 }

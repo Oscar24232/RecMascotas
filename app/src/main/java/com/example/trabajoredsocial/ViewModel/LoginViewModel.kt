@@ -7,11 +7,15 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.coroutines.flow.MutableStateFlow
 import android.util.Log
+import androidx.lifecycle.viewModelScope
 import com.example.trabajoredsocial.R
+import com.example.trabajoredsocial.RepositorioUsuarios
+import kotlinx.coroutines.launch
 
 class LoginViewModel : ViewModel() {
 
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
+    private val repo = RepositorioUsuarios()
     val TAG = "Oscar"
 
     val isLoading = MutableStateFlow(false)
@@ -39,20 +43,23 @@ class LoginViewModel : ViewModel() {
             }
     }
 
-    fun registerWithEmail(email: String, password: String) {
+    fun registerWithEmail(email: String, password: String, nombre: String, fotoUrl: String,rol:Int) {
         isLoading.value = true
         errorMessage.value = null
 
-        auth.createUserWithEmailAndPassword(email, password)
-            .addOnCompleteListener { task ->
+        viewModelScope.launch {
+            try {
+                repo.registrarUsuario(email, password, nombre, fotoUrl,rol)
+
                 isLoading.value = false
-                if (task.isSuccessful) {
-                    isGoogleLogin.value = false
-                    loginSuccess.value = true
-                } else {
-                    errorMessage.value = task.exception?.message
-                }
+                isGoogleLogin.value = false
+                loginSuccess.value = true
+
+            } catch (e: Exception) {
+                isLoading.value = false
+                errorMessage.value = e.message
             }
+        }
     }
 
     fun loginWithGoogle(idToken: String) {
@@ -62,13 +69,38 @@ class LoginViewModel : ViewModel() {
         errorMessage.value = null
 
         val credential = GoogleAuthProvider.getCredential(idToken, null)
+
         auth.signInWithCredential(credential)
             .addOnCompleteListener { task ->
-                isLoading.value = false
+
                 if (task.isSuccessful) {
-                    isGoogleLogin.value = true
-                    loginSuccess.value = true
+
+                    viewModelScope.launch {
+                        try {
+                            val user = auth.currentUser
+
+                            if (user != null) {
+                                repo.registraGmailAutentificado(
+                                    uid = user.uid,
+                                    nombre = user.displayName ?: "",
+                                    email = user.email ?: "",
+                                    fotoUrl = user.photoUrl?.toString() ?: "",
+                                    rol = 2
+                                )
+                            }
+
+                            isLoading.value = false
+                            isGoogleLogin.value = true
+                            loginSuccess.value = true
+
+                        } catch (e: Exception) {
+                            isLoading.value = false
+                            errorMessage.value = e.message
+                        }
+                    }
+
                 } else {
+                    isLoading.value = false
                     errorMessage.value = task.exception?.message
                 }
             }

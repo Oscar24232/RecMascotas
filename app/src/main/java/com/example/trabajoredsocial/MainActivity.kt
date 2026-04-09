@@ -30,6 +30,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,6 +38,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Cyan
 import androidx.compose.ui.platform.LocalContext
@@ -54,7 +56,6 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
-
 
  class MainActivity : ComponentActivity() {
      private val viewModel = LoginViewModel()
@@ -82,13 +83,14 @@ import com.google.android.gms.common.api.ApiException
                     composable(Rutas.pantallaUsuario) {
                         PantallaHome(navController)
                     }
-                    composable(Rutas.pantallaAdmin) {  }
+                    composable(Rutas.pantallaRegistro) {
+                        PantallaRegistro(navController)
+                    }
                 }
             }
         }
     }
 }
-
  @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
  @OptIn(ExperimentalMaterial3Api::class)
  @Composable
@@ -126,6 +128,11 @@ import com.google.android.gms.common.api.ApiException
              Toast.makeText(context, "Login cancelado", Toast.LENGTH_SHORT).show()
          }
      }
+     LaunchedEffect(loginSuccess) {
+         if (loginSuccess) {
+             navController.navigate(Rutas.pantallaUsuario)
+         }
+     }
 
      Scaffold(
          topBar = {
@@ -143,18 +150,27 @@ import com.google.android.gms.common.api.ApiException
          Box(
              modifier = Modifier
                  .fillMaxSize()
-                 .padding(padding),
+                 .padding(padding)
+                 .background(
+                     brush = Brush.verticalGradient(
+                         colors = listOf(
+                             Color(0xFF2196F3), // azul arriba
+                             Color(0xFFF8DB75)  // amarillo claro abajo
+                         )
+                     )
+                 ),
              contentAlignment = Alignment.Center
 
          ) {
 
              Column (
-                    modifier = Modifier.fillMaxSize().background(Cyan),
+                    modifier = Modifier.fillMaxSize(),
                  Arrangement.Center,Alignment.CenterHorizontally
              ) {
 
                  Text(
-                     "Iniciar Sesión",fontSize = 30.sp,fontWeight = FontWeight.Bold
+                     "Iniciar Sesión",fontSize = 30.sp,fontWeight = FontWeight.Bold,
+                     color = Color(0xFF6200EE)
 
                  )
 
@@ -195,19 +211,15 @@ import com.google.android.gms.common.api.ApiException
                  ) {
                      Button(onClick = {
                          if (usuario.isNotEmpty() && password.isNotEmpty()) {
-                             navController.navigate(Rutas.pantallaUsuario)
+                             viewModel.loginWithEmail(usuario.trim(), password.trim())
                          } else {
-                             Toast.makeText(
-                                 context,
-                                 "Rellena todos los campos",
-                                 Toast.LENGTH_SHORT
-                             ).show()
+                             Toast.makeText(context, "Rellena todos los campos", Toast.LENGTH_SHORT).show()
                          }
                      }) {
                          Text("ENTRAR")
                      }
-
-                     Button(onClick = { }) {
+                     Spacer(modifier = Modifier.height(70.dp))
+                     Button(onClick = { navController.navigate(Rutas.pantallaRegistro) }) {
                          Text("REGISTRARSE")
                      }
                  }
@@ -217,6 +229,7 @@ import com.google.android.gms.common.api.ApiException
                      Button(
                          onClick = {
                              googleLauncher.launch(googleSignInClient.signInIntent)
+                             navController.navigate(Rutas.pantallaUsuario)
                          },
                          modifier = Modifier.fillMaxWidth()
                      ) {
