@@ -1,5 +1,6 @@
 package com.example.trabajoredsocial
 
+import android.util.Patterns
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -45,7 +46,7 @@ import com.example.trabajoredsocial.Modelo.Usuario
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PantallaRegistro(navController: NavHostController) {
+fun PantallaRegistroAdmin(navController: NavHostController) {
     val viewModel: LoginViewModel = viewModel()
     val context = LocalContext.current
     val loginSuccess by viewModel.loginSuccess.collectAsState()
@@ -68,7 +69,7 @@ fun PantallaRegistro(navController: NavHostController) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Red Social Animal") },
+                title = { Text("Registrar usuario") },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Yellow,
                     titleContentColor = Color.Black
@@ -106,7 +107,7 @@ fun PantallaRegistro(navController: NavHostController) {
 
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    text = "¡Bienvenido!",
+                    text = "¡Registrar usuario nuevo!",
                     style = MaterialTheme.typography.headlineLarge,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF6200EE)
@@ -187,7 +188,7 @@ fun PantallaRegistro(navController: NavHostController) {
                              return@Button
                          }
 
-                         if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                         if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
                              Toast.makeText(context, "Email no válido", Toast.LENGTH_SHORT).show()
                              return@Button
                          }
@@ -197,13 +198,26 @@ fun PantallaRegistro(navController: NavHostController) {
                              return@Button
                          }
 
-                         viewModel.registerWithEmail(email, password,nombre,fotoUrl,2)
+                         viewModel.registrarUsuarioAdmin(
+                             email,
+                             password,
+                             nombre,
+                             fotoUrl,
+                             2,
+                             onSuccess = {
+                                 Toast.makeText(context, "Usuario creado", Toast.LENGTH_SHORT).show()
+                                 navController.popBackStack()
+                             },
+                             onError = {
+                                 Toast.makeText(
+                                     context,
+                                     "Error al crear usuario",
+                                     Toast.LENGTH_SHORT
+                                 ).show()
+                             })
                      }) {
-                         Text("REGISTRARSE")
+                         Text("REGISTRAR USUARIO")
                      }
-                    Button(onClick = { navController.navigate(Rutas.pantallaLogin) }) {
-                        Text("REGISTRARSE CON GOOGLE")
-                    }
                 }
             }
 

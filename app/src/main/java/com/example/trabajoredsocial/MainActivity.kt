@@ -51,6 +51,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.loginfirebase_25_26.LoginViewModel
+import com.example.trabajoredsocial.ViewModel.MascotasViewModel
 import com.example.trabajoredsocial.ui.theme.TrabajoRedSocialTheme
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -85,6 +86,24 @@ import com.google.android.gms.common.api.ApiException
                     }
                     composable(Rutas.pantallaRegistro) {
                         PantallaRegistro(navController)
+                    }
+                    composable(Rutas.pantallaCrearMascota) {
+                        PantallaCrearMascota(navController)
+                    }
+                    composable (Rutas.pantallaEditarMascota ){
+                        PantallaEditarMascota(navController)
+                    }
+                    composable(Rutas.pantallaPerfilUsuario) {
+                        PantallaPerfil(navController)
+                    }
+                    composable(Rutas.pantallaAdmin){
+                        PantallaAdmin(navController)
+                    }
+                    composable(Rutas.PantallaCrearMascotaAdmin){
+                        PantallaCrearMascotaAdmin(navController)
+                    }
+                    composable(Rutas.PantallaRegistroUsuarioAdmin){
+                        PantallaRegistroAdmin(navController)
                     }
                 }
             }
@@ -212,6 +231,7 @@ import com.google.android.gms.common.api.ApiException
                      Button(onClick = {
                          if (usuario.isNotEmpty() && password.isNotEmpty()) {
                              viewModel.loginWithEmail(usuario.trim(), password.trim())
+                             navController.navigate(Rutas.pantallaUsuario)
                          } else {
                              Toast.makeText(context, "Rellena todos los campos", Toast.LENGTH_SHORT).show()
                          }
@@ -240,4 +260,6 @@ import com.google.android.gms.common.api.ApiException
          }
      }
  }
+
+
 

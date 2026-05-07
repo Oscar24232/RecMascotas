@@ -8,9 +8,14 @@ import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.coroutines.flow.MutableStateFlow
 import android.util.Log
 import androidx.lifecycle.viewModelScope
+import com.example.trabajoredsocial.DatosCompartidos
+import com.example.trabajoredsocial.Modelo.Usuario
 import com.example.trabajoredsocial.R
-import com.example.trabajoredsocial.RepositorioUsuarios
+import com.example.trabajoredsocial.RepositoriosFirebase.RepositorioUsuarios
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
+
+
 
 class LoginViewModel : ViewModel() {
 
@@ -24,21 +29,71 @@ class LoginViewModel : ViewModel() {
 
     val isGoogleLogin = MutableStateFlow(false)
 
-
     val isUserLoggedIn: Boolean
         get() = auth.currentUser != null
-
+    fun registrarUsuarioAdmin(
+        email: String,
+        password: String,
+        nombre: String,
+        fotoUrl: String,
+        rol: Int,
+        onSuccess: () -> Unit,
+        onError: () -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                repo.registrarUsuarioAdmin(
+                    email, password, nombre, fotoUrl, rol
+                )
+                onSuccess()
+            } catch (e: Exception) {
+                onError()
+            }
+        }
+    }
     fun loginWithEmail(email: String, password: String) {
         isLoading.value = true
         errorMessage.value = null
 
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
+
                 isLoading.value = false
+
                 if (task.isSuccessful) {
-                    loginSuccess.value = true
+
+                    val user = FirebaseAuth.getInstance().currentUser
+
+                    if (user != null) {
+
+                        val db = FirebaseFirestore.getInstance()
+
+                        db.collection("usuarios")
+                            .whereEqualTo("id", user.uid)
+                            .get()
+                            .addOnSuccessListener { result ->
+
+                                if (!result.isEmpty) {
+
+                                    val doc = result.documents[0]
+                                    val usuario = doc.toObject(Usuario::class.java)
+
+                                    if (usuario != null) {
+                                        DatosCompartidos.usuario = usuario
+
+                                    }
+
+                                } else {
+                                    errorMessage.value = "Usuario no encontrado en Firestore"
+                                }
+                            }
+                            .addOnFailureListener {
+                                errorMessage.value = "Error al obtener usuario"
+                            }
+                    }
+
                 } else {
-                    errorMessage.value = task.exception?.message
+                    errorMessage.value = "Error en login"
                 }
             }
     }
@@ -63,10 +118,8 @@ class LoginViewModel : ViewModel() {
     }
 
     fun loginWithGoogle(idToken: String) {
-        if (idToken.isEmpty()) return
 
-        isLoading.value = true
-        errorMessage.value = null
+        if (idToken.isEmpty()) return
 
         val credential = GoogleAuthProvider.getCredential(idToken, null)
 
@@ -75,33 +128,35 @@ class LoginViewModel : ViewModel() {
 
                 if (task.isSuccessful) {
 
-                    viewModelScope.launch {
-                        try {
-                            val user = auth.currentUser
+                    val user = auth.currentUser
 
-                            if (user != null) {
-                                repo.registraGmailAutentificado(
-                                    uid = user.uid,
-                                    nombre = user.displayName ?: "",
-                                    email = user.email ?: "",
-                                    fotoUrl = user.photoUrl?.toString() ?: "",
-                                    rol = 2
-                                )
-                            }
+                    if (user != null) {
 
-                            isLoading.value = false
-                            isGoogleLogin.value = true
-                            loginSuccess.value = true
+                        Log.d("LOGIN", "UID: ${user.uid}")
 
-                        } catch (e: Exception) {
-                            isLoading.value = false
-                            errorMessage.value = e.message
+                        viewModelScope.launch {
+                            repo.registraGmailAutentificado(
+                                uid = user.uid,
+                                nombre = user.displayName ?: "",
+                                email = user.email ?: "",
+                                fotoUrl = user.photoUrl?.toString() ?: "",
+                                rol = 2
+                            )
                         }
+
+                        DatosCompartidos.usuario = Usuario(
+                            id = user.uid,
+                            nombre = user.displayName ?: "",
+                            email = user.email ?: "",
+                            fotoUrl = user.photoUrl?.toString() ?: "",
+                            rol = 2
+                        )
+
+                        Log.d("LOGIN", "USUARIO GUARDADO: ${DatosCompartidos.usuario?.id}")
                     }
 
                 } else {
-                    isLoading.value = false
-                    errorMessage.value = task.exception?.message
+                    Log.e("LOGIN", "Error: ${task.exception?.message}")
                 }
             }
     }
