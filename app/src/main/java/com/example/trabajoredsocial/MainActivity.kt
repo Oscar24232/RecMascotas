@@ -127,7 +127,17 @@ import com.google.android.gms.common.api.ApiException
      var usuario by remember { mutableStateOf("") }
      var password by remember { mutableStateOf("") }
      var isRegistering by remember { mutableStateOf(false) }
+     LaunchedEffect(errorMessage) {
 
+         errorMessage?.let {
+
+             Toast.makeText(
+                 context,
+                 "Datos mal introducido o no existen",
+                 Toast.LENGTH_SHORT
+             ).show()
+         }
+     }
      val googleLauncher = rememberLauncherForActivityResult(
          contract = ActivityResultContracts.StartActivityForResult()
      ) { result ->
@@ -148,17 +158,6 @@ import com.google.android.gms.common.api.ApiException
              }
          } else {
              Toast.makeText(context, "Login cancelado", Toast.LENGTH_SHORT).show()
-         }
-     }
-     LaunchedEffect(loginSuccess) {
-
-         Log.d("LOGIN", "Estado login: $loginSuccess")
-
-         if (loginSuccess) {
-
-             Log.d("LOGIN", "NAVEGANDO")
-
-             navController.navigate(Rutas.pantallaUsuario)
          }
      }
 
@@ -239,13 +238,15 @@ import com.google.android.gms.common.api.ApiException
                  ) {
                      Button(onClick = {
                          if (usuario.isNotEmpty() && password.isNotEmpty()) {
-
                              viewModel.loginWithEmail(
                                  usuario.trim(),
                                  password.trim()
-                             )
+                             ){
+                                 navController.navigate(Rutas.pantallaUsuario)
+                             }
 
-                         } else {
+                         }
+                         else if (usuario.isEmpty() || password.isEmpty()) {
 
                              Toast.makeText(
                                  context,
@@ -254,6 +255,7 @@ import com.google.android.gms.common.api.ApiException
                              ).show()
 
                          }
+
                      }) {
                          Text("ENTRAR")
                      }

@@ -245,7 +245,7 @@ fun PantallaPerfil(navController: NavHostController) {
                     Button(onClick = {
                         viewModeLogin.signOut(context)
                         Toast.makeText(context, "Cerrando sesion", Toast.LENGTH_SHORT).show()
-                        navController.popBackStack()
+                        navController.navigate(Rutas.pantallaLogin)
                     },Modifier.weight(1f)) {
                         Text("Cerrar Sesion")
                     }

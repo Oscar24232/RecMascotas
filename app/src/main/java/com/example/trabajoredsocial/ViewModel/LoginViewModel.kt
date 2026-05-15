@@ -7,6 +7,7 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.coroutines.flow.MutableStateFlow
 import android.util.Log
+import android.widget.Toast
 import androidx.lifecycle.viewModelScope
 import com.example.trabajoredsocial.DatosCompartidos
 import com.example.trabajoredsocial.Modelo.Usuario
@@ -51,7 +52,8 @@ class LoginViewModel : ViewModel() {
             }
         }
     }
-    fun loginWithEmail(email: String, password: String) {
+    fun loginWithEmail(email: String, password: String,
+                       onSuccess: () -> Unit) {
 
         isLoading.value = true
         errorMessage.value = null
@@ -92,12 +94,14 @@ class LoginViewModel : ViewModel() {
                                         )
 
                                         loginSuccess.value = true
+                                        onSuccess()
                                     }
 
                                 } else {
 
                                     errorMessage.value =
                                         "Usuario no encontrado en Firestore"
+
                                 }
                             }
 
@@ -196,6 +200,7 @@ class LoginViewModel : ViewModel() {
 
     fun signOut(context: Context) {
         auth.signOut()
+        DatosCompartidos.usuario = null
         // Si el usuario se logueó con Google, cierra sesión y revoca acceso
         if (isGoogleLogin.value) {
             val googleSignInClient = com.google.android.gms.auth.api.signin.GoogleSignIn.getClient(
