@@ -4,6 +4,7 @@
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -136,7 +137,9 @@ import com.google.android.gms.common.api.ApiException
                  val account = task.getResult(ApiException::class.java)
                  val idToken = account?.idToken
                  if (!idToken.isNullOrEmpty()) {
-                     viewModel.loginWithGoogle(idToken)
+                     viewModel.loginWithGoogle(idToken) {
+                         navController.navigate(Rutas.pantallaUsuario)
+                     }
                  } else {
                      Toast.makeText(context, "No se obtuvo ID token", Toast.LENGTH_SHORT).show()
                  }
@@ -148,7 +151,13 @@ import com.google.android.gms.common.api.ApiException
          }
      }
      LaunchedEffect(loginSuccess) {
+
+         Log.d("LOGIN", "Estado login: $loginSuccess")
+
          if (loginSuccess) {
+
+             Log.d("LOGIN", "NAVEGANDO")
+
              navController.navigate(Rutas.pantallaUsuario)
          }
      }
@@ -230,10 +239,20 @@ import com.google.android.gms.common.api.ApiException
                  ) {
                      Button(onClick = {
                          if (usuario.isNotEmpty() && password.isNotEmpty()) {
-                             viewModel.loginWithEmail(usuario.trim(), password.trim())
-                             navController.navigate(Rutas.pantallaUsuario)
+
+                             viewModel.loginWithEmail(
+                                 usuario.trim(),
+                                 password.trim()
+                             )
+
                          } else {
-                             Toast.makeText(context, "Rellena todos los campos", Toast.LENGTH_SHORT).show()
+
+                             Toast.makeText(
+                                 context,
+                                 "Rellena todos los campos",
+                                 Toast.LENGTH_SHORT
+                             ).show()
+
                          }
                      }) {
                          Text("ENTRAR")
@@ -248,8 +267,9 @@ import com.google.android.gms.common.api.ApiException
 
                      Button(
                          onClick = {
-                             googleLauncher.launch(googleSignInClient.signInIntent)
-                             navController.navigate(Rutas.pantallaUsuario)
+                             googleLauncher.launch(
+                                 googleSignInClient.signInIntent
+                             )
                          },
                          modifier = Modifier.fillMaxWidth()
                      ) {

@@ -52,6 +52,7 @@ class LoginViewModel : ViewModel() {
         }
     }
     fun loginWithEmail(email: String, password: String) {
+
         isLoading.value = true
         errorMessage.value = null
 
@@ -71,29 +72,50 @@ class LoginViewModel : ViewModel() {
                         db.collection("usuarios")
                             .whereEqualTo("id", user.uid)
                             .get()
+
                             .addOnSuccessListener { result ->
 
                                 if (!result.isEmpty) {
 
                                     val doc = result.documents[0]
-                                    val usuario = doc.toObject(Usuario::class.java)
+
+                                    val usuario =
+                                        doc.toObject(Usuario::class.java)
 
                                     if (usuario != null) {
+
                                         DatosCompartidos.usuario = usuario
 
+                                        Log.d(
+                                            "LOGIN",
+                                            "USUARIO GUARDADO: ${usuario.id}"
+                                        )
+
+                                        loginSuccess.value = true
                                     }
 
                                 } else {
-                                    errorMessage.value = "Usuario no encontrado en Firestore"
+
+                                    errorMessage.value =
+                                        "Usuario no encontrado en Firestore"
                                 }
                             }
+
                             .addOnFailureListener {
-                                errorMessage.value = "Error al obtener usuario"
+
+                                errorMessage.value =
+                                    "Error al obtener usuario"
                             }
+
+                    } else {
+
+                        errorMessage.value = "Usuario null"
                     }
 
                 } else {
-                    errorMessage.value = "Error en login"
+
+                    errorMessage.value =
+                        task.exception?.message ?: "Error en login"
                 }
             }
     }
@@ -117,7 +139,10 @@ class LoginViewModel : ViewModel() {
         }
     }
 
-    fun loginWithGoogle(idToken: String) {
+    fun loginWithGoogle(
+        idToken: String,
+        onSuccess: () -> Unit
+    ) {
 
         if (idToken.isEmpty()) return
 
@@ -135,6 +160,7 @@ class LoginViewModel : ViewModel() {
                         Log.d("LOGIN", "UID: ${user.uid}")
 
                         viewModelScope.launch {
+
                             repo.registraGmailAutentificado(
                                 uid = user.uid,
                                 nombre = user.displayName ?: "",
@@ -142,21 +168,28 @@ class LoginViewModel : ViewModel() {
                                 fotoUrl = user.photoUrl?.toString() ?: "",
                                 rol = 2
                             )
+
+                            DatosCompartidos.usuario = Usuario(
+                                id = user.uid,
+                                nombre = user.displayName ?: "",
+                                email = user.email ?: "",
+                                fotoUrl = user.photoUrl?.toString() ?: "",
+                                rol = 2
+                            )
+
+                            Log.d("LOGIN", "USUARIO GUARDADO: ${DatosCompartidos.usuario?.id}")
+
+                            loginSuccess.value = true
+
+                            onSuccess()
                         }
-
-                        DatosCompartidos.usuario = Usuario(
-                            id = user.uid,
-                            nombre = user.displayName ?: "",
-                            email = user.email ?: "",
-                            fotoUrl = user.photoUrl?.toString() ?: "",
-                            rol = 2
-                        )
-
-                        Log.d("LOGIN", "USUARIO GUARDADO: ${DatosCompartidos.usuario?.id}")
                     }
 
                 } else {
+
                     Log.e("LOGIN", "Error: ${task.exception?.message}")
+
+                    errorMessage.value = task.exception?.message
                 }
             }
     }
